@@ -1,0 +1,222 @@
+#!/bin/bash
+# CSW_DATA_PREFIX=docker
+# MODE=dev
+# use sqlite3 for other vars 
+
+MODE="PROD"
+
+decho(){
+    if [ "$MODE" = "DEV" ]; then
+        command echo "$@"
+    fi
+}
+
+
+DB_FILE="${DATA_DB_FILE:-$HOME/.config/csw-db.sqlite}"
+DB_FILE="$(realpath .)/data.db"
+SEP=" "
+
+DATA_DB_TABLE_NAME="${DATA_DB_TABLE_NAME:-main}"
+
+
+# Helper function to execute a SQL command against the database
+sqlite_exec() {
+    local sql_command="$1"
+    # The -batch and -separator '' flags ensure clean output for easy parsing
+    sqlite3 -batch -separator "$SEP" "$DB_FILE" "$sql_command"
+    return $?
+}
+
+# --- Core Functions ---
+
+# Function 1: Initializes the database and table
+# Creates the database file and the 'main' table.
+# Uses UNIQUE constraint to ensure 'tag' and 'name' are a composite key.
+init() {
+    echo "Initializing database at $DB_FILE..."
+    # 1. Ensure the directory exists
+    mkdir -p "$(dirname $DB_FILE)"
+
+    # 2. Define the SQL command to create the table
+    local create_table_sql="
+        CREATE TABLE IF NOT EXISTS $DATA_DB_TABLE_NAME (
+            tag TEXT NOT NULL,
+            name TEXT NOT NULL,
+            value TEXT,
+            -- Ensure tag + name combination is unique, replacing old entry on conflict
+            UNIQUE(tag, name) ON CONFLICT REPLACE
+        );
+        -- Optionally, create indices for faster lookups (good practice)
+        CREATE INDEX IF NOT EXISTS idx_tag_name ON main(tag, name);
+    "
+    
+    # 3. Execute the SQL command
+    sqlite_exec "$create_table_sql"
+    
+    if [ $? -eq 0 ]; then
+        echo "Database initialized successfully." >&2
+    else
+        echo "Error: Database initialization failed." >&2
+        return 1
+    fi
+}
+
+
+# Function 2: Gets the value of an item
+# Arguments: $1 = tag, $2 = name
+getInfo() {
+    if [ "$1" = "--all" ] || [ "$1" = "-a" ] || [ "$1" = "all" ]; then
+        getAll
+        return $?
+    fi
+
+    local tag="$1"
+    local name="$2"
+    local select_sql="SELECT value FROM main WHERE tag='$tag' AND name='$name';"
+
+    if [ "$#" = "1" ]; then
+
+        select_sql="SELECT name FROM main WHERE tag='$1';"
+        OUT=$(sqlite_exec "$select_sql")
+        if [ -z "$OUT" ]; then
+            select_sql="SELECT value FROM main WHERE name='$1';"
+            OUT=$(sqlite_exec "$select_sql")
+            if [ -z "$OUT" ]; then
+                return 1
+            fi
+        fi
+        for line in $OUT; do
+            echo "$line"
+        done
+
+        return 0
+    fi
+
+    
+    
+    # Run the query and print the result directly to stdout
+    # OUT=$()
+    # for line in $OUT; do
+    #     echo "$line"
+    # done
+    sqlite_exec "$select_sql"
+    
+    return $?
+}
+
+getAll() {
+    SEP=":" 
+    OUT=$(sqlite_exec "SELECT tag, name, value FROM main;")
+    
+    printALL(){
+        local RESET="$(data get colors reset )"
+        if [ $# -lt 3 ];then
+            echo "$RESET$1 [ $2  ]$RESET"
+            return 1
+        fi
+        echo "$RESET$1/$2  [ $3  ]$RESET"
+        
+        # echo "$RESET$1/$2:  [ $(echo $3|base64) $RESET ]"
+    }
+    for line in $OUT; do
+        printALL $(echo "$line"|tr ':' ' ')
+    done
+    SEP=" "
+    
+    return $?
+}
+
+# Function 3: Sets or updates the value of an item
+# Arguments: $1 = tag, $2 = name, $3 = new_value
+setInfo() {
+
+    local tag="$1"
+    local name="$2"
+    local value="$3"
+    local insert_sql="INSERT OR REPLACE INTO $DATA_DB_TABLE_NAME (tag, name, value) VALUES ('$tag', '$name', '$value');"
+
+
+    if [ "$#" = "2" ];then
+        command echo we r here 
+        name="$1"
+        value="$2"
+        tag=""
+        insert_sql="INSERT OR REPLACE INTO main (tag, name, value) VALUES ('$tag', '$name', '$value');"
+    fi 
+    
+    
+    # Use INSERT OR REPLACE to handle both insertion and update in one statement.
+    # It finds the entry by (tag, name) and replaces the entire row, including 'value'.
+    
+    sqlite_exec "$insert_sql"
+    
+    if [ $? -eq 0 ]; then
+        echo "Set: tag='$tag', name='$name' to value='$value'"
+    else
+        decho "Error: Failed to set information." >&2
+        return 1
+    fi
+}
+
+# Function 4: Removes all table entries with matching tag and name
+# Arguments: $1 = tag, $2 = name
+deleteInfo() {
+    if [ -z "$1" ] || [ -z "$2" ]; then
+        decho "Usage: deleteInfo <tag> <name>" >&2
+        return 1
+    fi
+
+    local tag="$1"
+    local name="$2"
+    
+    local delete_sql="DELETE FROM main WHERE tag='$tag' AND name='$name';"
+    
+    sqlite_exec "$delete_sql"
+    
+    if [ $? -eq 0 ]; then
+        decho "Deleted entry for tag='$tag', name='$name'."
+    else
+        decho "Error: Failed to delete information." >&2
+        return 1
+    fi
+}
+
+
+case "$1" in
+    -i|--init|init)
+        init
+        ;;
+
+    -a|--all|all)
+        shift 
+        getAll "$@" 
+        ;;
+    -g|--get|get)
+        shift
+        if [ "$#" -eq 0 ]; then
+            getInfo --all
+        else
+            getInfo "$@"
+        fi
+        ;;
+    -s|--set|set)
+        shift 
+        setInfo "$@"
+
+        ;;
+    -d|--delete|delete|del)
+        shift 
+        deleteInfo "$@"
+
+        ;;
+    --sql|sql)
+        shift 
+        sqlite_exec "$@"
+        ;;
+    *)
+        eval "$@"
+        exit $?
+        ;;
+esac
+
+
