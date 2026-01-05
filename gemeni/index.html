@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Browser Audio Recorder & Transcriber</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for a polished look */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            background-color: #f7f9fb;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+
+            margin: 50px 50px;
+         
+        }
+        html{
+            width: screen;
+            height: screen;
+            /* margin: 50px 50px; */
+            overflow: hidden;
+        }
+        .container-card {
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        }
+        .btn-pulse {
+            transition: all 0.2s;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(252, 63, 63, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(252, 63, 63, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(252, 63, 63, 0); }
+        }
+
+        body{
+            display: flex;
+
+        }
+        #mainapp {
+            flex:10;
+            
+        }
+        #gemeniOutput{
+            flex: 10;
+            background-color: white;
+            height: 100%;
+            overflow: scroll;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+        }
+        #output-data{
+            position: absolute;
+            bottom:0;
+            right:0;
+            width: 100%;
+            height: 10%;
+
+        }
+    </style>
+</head>
+<body class="w-full h-screen ">
+    <div  
+        style="width: 100%;height: 90%;background-color: none;"
+        class="flex w-full h-screen p-4 space-x-4 ">
+            <!-- <div style="flex:1"></div> -->
+            <div id="mainapp" class="flex items-center justify-left min-h-screen w-flex p-4">
+                <h1 id="headerval"></h1>
+                <br>
+                <div id="app" class="container-card w-full max-w-lg bg-white rounded-xl p-8 space-y-6">
+                    <h1 class="text-3xl font-bold text-gray-800 text-center">Voice Transcription Demo</h1>
+                    <p class="text-center text-gray-500">
+                        Click the mic to start recording. Click it again or press the Stop button to transcribe the audio using the Gemini API.
+                    </p>
+
+                    <!-- Status and Control Section -->
+                    <div class="flex flex-col items-center space-y-4 ">
+                        <!-- Status Display -->
+                        <div id="status-display" class="w-full text-center p-3 rounded-lg text-sm font-medium transition-colors duration-300 bg-blue-100 text-blue-800">
+                            Ready to record.
+                        </div>
+
+                        <!-- Record/Stop Button -->
+                        <button id="record-button" class="flex items-center justify-center w-24 h-24 rounded-full bg-red-500 hover:bg-red-600 transition-transform transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-red-300 focus:ring-opacity-50" aria-label="Start Recording">
+                            <svg id="mic-icon" xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white">
+                                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                                <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                                <line x1="12" y1="19" x2="12" y2="23"></line>
+                                <line x1="8" y1="23" x2="16" y2="23"></line>
+                            </svg>
+                            <!-- Spinner for loading state -->
+                            <svg id="loading-spinner" class="animate-spin -ml-1 mr-3 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" width="24" height="24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- Transcription Output -->
+                    <div id="output-card" class="bg-gray-50 p-6 rounded-lg border border-gray-200 w-full">
+                        <h2 class="text-xl font-semibold text-gray-700 mb-3">Transcription:</h2>
+                        <div id="transcription-output" class="text-gray-600 min-h-12 w-full">
+                            Start recording to see the output here...
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div id="gemeniOutput" markdown=1 class="container-card w-full max-h-screen bg-white rounded-xl p-8 space-y-6"></div>
+            <div style="flex:1"></div>
+    </div>
+    <br>
+    <br>
+    <div id="output-data" style="display:none;" class="bg-gray-900 text-green-400  rounded-lg  text-sm">
+        <h1 id="theCount">00000</h1>
+        No recorded audio data yet.
+    </div>
+   
+</body>
+
+
+
+<script src="api-key.js"></script>
+<script src="askGem.js" ></script>
+<script src="main.js" ></script>
+    
+</html>

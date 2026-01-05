@@ -5,6 +5,7 @@ PUBLIC_KEY_FILE="public_key.pem"
 
 KEY_SIZE=2048
 
+## initialize a public/private keypair
 init(){
     for item in $(seq 10); do 
         echo "$item : $RANDOM : " >> input.txt
@@ -13,10 +14,10 @@ init(){
     ln -s ../open-ssl.sh ./util
     keypair
 }
+
+## remove a public/private keypair, input texts, excrypted files, decrypted files 
 clean(){
-    rm -f *.pem
-    rm -f *.txt
-    rm -f *.bin
+    rm -f *.pem *.txt *.enc *.decr
     if [ -f "util" ]; then
         rm util
     fi
@@ -25,7 +26,6 @@ clean(){
 
 keypair(){
     # generates an RSA public/private key pair using OpenSSL.
-
     # add a passphrase to the private key
     #    You will be prompted to enter and verify a passphrase.
     # openssl genrsa -aes256 -out "${PRIVATE_KEY_FILE}" "${KEY_SIZE}" < $(echo password;echo password)
@@ -40,8 +40,7 @@ encrypt(){
     file(){
          # encrypts a file using the public key.
         INPUT_FILE="input.txt"
-        ENCRYPTED_FILE="encrypted_file.bin"
-
+        ENCRYPTED_FILE="$INPUT_FILE.enc"
         openssl pkeyutl -encrypt -pubin -inkey "${PUBLIC_KEY_FILE}" -in "${INPUT_FILE}" -out "${ENCRYPTED_FILE}"
 
     }
@@ -55,8 +54,9 @@ encrypt(){
 decrypt(){
     file(){
         # decrypts a file using the private key.
-        ENCRYPTED_FILE="encrypted_file.bin"
-        DECRYPTED_FILE="decrypted_file.txt"
+        INPUT_FILE="input.txt"
+        ENCRYPTED_FILE="$INPUT_FILE.enc"
+        DECRYPTED_FILE="$ENCRYPTED_FILE.decr"
 
         openssl pkeyutl -decrypt -inkey "${PRIVATE_KEY_FILE}" -in "${ENCRYPTED_FILE}" -out "${DECRYPTED_FILE}"
     }
@@ -67,8 +67,13 @@ decrypt(){
     $@
 }
 
+## get a quick sha256 hash of the input 
 hash(){
-    echo $@ | openssl dgst -sha256 -binary
+    if [ -z "$@" ];then 
+        cat /dev/stdin | openssl dgst -sha256 -binary
+    else 
+        echo $@ | openssl dgst -sha256 -binary
+    fi
 }
 
 $@

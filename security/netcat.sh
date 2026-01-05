@@ -1,6 +1,6 @@
 #!/bin/bash
-# netcat
-
+ 
+## use basic GET requests to query a host and port 
 web(){
     get(){
         local url="${1:-localhost}"
@@ -11,7 +11,7 @@ web(){
     $@
 }
 
-
+## use basic mqtt requests follow and/or publish content 
 mqtt(){
 
     follow(){

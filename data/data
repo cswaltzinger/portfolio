@@ -1,29 +1,71 @@
 #!/bin/bash
-# CSW_DATA_PREFIX=docker
-# MODE=dev
-# use sqlite3 for other vars 
+
 
 MODE="PROD"
 
-decho(){
+DB_FILE="${DATA_DB_FILE:-$HOME/.config/data.db.sqlite}"
+SEP="${DATA_DB_SEPORATOR:-" "}"
+TABLE="${DATA_DB_TABLE_NAME:-"main"}"
+
+
+
+
+### override echo to be used for developer messages
+echo(){
     if [ "$MODE" = "DEV" ]; then
         command echo "$@"
+    else 
+        command echo "$@" > /dev/stderr
     fi
 }
+if [ "$MODE" = "DEV" ]; then
+    DB_FILE="$(realpath .)/data.db"
+fi
 
 
-DB_FILE="${DATA_DB_FILE:-$HOME/.config/csw-db.sqlite}"
-DB_FILE="$(realpath .)/data.db"
-SEP=" "
 
-DATA_DB_TABLE_NAME="${DATA_DB_TABLE_NAME:-main}"
+### value can be one of the two following functions 
+TRANSPOSE_CMD=""
+print_as_env(){
+    print_as_env_helpper(){
+        local name=$(basename "$1")
+        shift 
+        local value="$@"
+        printf "%s=%s\n" "$name" "$value"
+    }
+    while read line; do 
+        print_as_env_helpper $line
+    done
+}
 
+pretty_print(){
+    pretty_print_helpper(){
+        local name="$1"
+        shift 
+        local value="$@"
+        printf "%s [ %s ]\n" "$name" "$value"
+    }
+    while read line; do 
+        pretty_print_helpper $line
+    done
+}
 
 # Helper function to execute a SQL command against the database
 sqlite_exec() {
     local sql_command="$1"
-    # The -batch and -separator '' flags ensure clean output for easy parsing
-    sqlite3 -batch -separator "$SEP" "$DB_FILE" "$sql_command"
+    if [ -t 1 ]; then
+        if [ -z "$TRANSPOSE_CMD" ];then 
+            TRANSPOSE_CMD=pretty_print
+        fi
+        sqlite3 -batch -separator "$SEP" "$DB_FILE" "$sql_command" | $TRANSPOSE_CMD
+    else 
+        if [ -z "$TRANSPOSE_CMD" ];then 
+            sqlite3 -batch -separator "$SEP" "$DB_FILE" "$sql_command" 
+        else
+            sqlite3 -batch -separator "$SEP" "$DB_FILE" "$sql_command" | $TRANSPOSE_CMD
+
+        fi
+    fi
     return $?
 }
 
@@ -31,32 +73,26 @@ sqlite_exec() {
 
 # Function 1: Initializes the database and table
 # Creates the database file and the 'main' table.
-# Uses UNIQUE constraint to ensure 'tag' and 'name' are a composite key.
 init() {
     echo "Initializing database at $DB_FILE..."
     # 1. Ensure the directory exists
     mkdir -p "$(dirname $DB_FILE)"
 
     # 2. Define the SQL command to create the table
-    local create_table_sql="
-        CREATE TABLE IF NOT EXISTS $DATA_DB_TABLE_NAME (
-            tag TEXT NOT NULL,
-            name TEXT NOT NULL,
-            value TEXT,
-            -- Ensure tag + name combination is unique, replacing old entry on conflict
-            UNIQUE(tag, name) ON CONFLICT REPLACE
-        );
-        -- Optionally, create indices for faster lookups (good practice)
-        CREATE INDEX IF NOT EXISTS idx_tag_name ON main(tag, name);
-    "
-    
+    local create_table_sql="CREATE TABLE IF NOT EXISTS $TABLE (
+        name TEXT NOT NULL,
+        value TEXT,
+        UNIQUE(name) ON CONFLICT REPLACE
+    );
+    CREATE INDEX IF NOT EXISTS idx_name ON $TABLE(name);"
+        
     # 3. Execute the SQL command
     sqlite_exec "$create_table_sql"
     
     if [ $? -eq 0 ]; then
-        echo "Database initialized successfully." >&2
+        echo "Database initialized successfully." 
     else
-        echo "Error: Database initialization failed." >&2
+        echo "Error: Database initialization failed." 
         return 1
     fi
 }
@@ -65,158 +101,132 @@ init() {
 # Function 2: Gets the value of an item
 # Arguments: $1 = tag, $2 = name
 getInfo() {
-    if [ "$1" = "--all" ] || [ "$1" = "-a" ] || [ "$1" = "all" ]; then
-        getAll
+    if [ "$#" = "0" ] || [ "$1" = "--all" ] || [ "$1" = "-a" ] || [ "$1" = "all" ]; then
+        sqlite_exec "SELECT * FROM $TABLE;"
         return $?
     fi
 
-    local tag="$1"
-    local name="$2"
-    local select_sql="SELECT value FROM main WHERE tag='$tag' AND name='$name';"
+    local name="$1"
+    local select_sql="SELECT * FROM $TABLE WHERE name LIKE '%$name%';"
 
-    if [ "$#" = "1" ]; then
-
-        select_sql="SELECT name FROM main WHERE tag='$1';"
-        OUT=$(sqlite_exec "$select_sql")
-        if [ -z "$OUT" ]; then
-            select_sql="SELECT value FROM main WHERE name='$1';"
-            OUT=$(sqlite_exec "$select_sql")
-            if [ -z "$OUT" ]; then
-                return 1
-            fi
-        fi
-        for line in $OUT; do
-            echo "$line"
-        done
-
-        return 0
-    fi
-
-    
-    
-    # Run the query and print the result directly to stdout
-    # OUT=$()
-    # for line in $OUT; do
-    #     echo "$line"
-    # done
     sqlite_exec "$select_sql"
     
     return $?
 }
 
-getAll() {
-    SEP=":" 
-    OUT=$(sqlite_exec "SELECT tag, name, value FROM main;")
-    
-    printALL(){
-        local RESET="$(data get colors reset )"
-        if [ $# -lt 3 ];then
-            echo "$RESET$1 [ $2  ]$RESET"
-            return 1
-        fi
-        echo "$RESET$1/$2  [ $3  ]$RESET"
-        
-        # echo "$RESET$1/$2:  [ $(echo $3|base64) $RESET ]"
-    }
-    for line in $OUT; do
-        printALL $(echo "$line"|tr ':' ' ')
-    done
-    SEP=" "
-    
-    return $?
-}
-
 # Function 3: Sets or updates the value of an item
-# Arguments: $1 = tag, $2 = name, $3 = new_value
+# Arguments: $1 = name, $2 ?= new_value
 setInfo() {
 
-    local tag="$1"
-    local name="$2"
-    local value="$3"
-    local insert_sql="INSERT OR REPLACE INTO $DATA_DB_TABLE_NAME (tag, name, value) VALUES ('$tag', '$name', '$value');"
+    local name="$1"
+    local value="$2"
+    if [ -z "$value" ]; then
+        value=$(cat /dev/stdin)
+        # echo "$name = [$value]"
+        if [ -z "$value" ]; then
+            say not gotten
+            echo "please provide a value to set [$name]"
+            return 1
+        fi
+    fi
+    
 
 
-    if [ "$#" = "2" ];then
-        command echo we r here 
-        name="$1"
-        value="$2"
-        tag=""
-        insert_sql="INSERT OR REPLACE INTO main (tag, name, value) VALUES ('$tag', '$name', '$value');"
-    fi 
-    
-    
+
+    local insert_sql="INSERT OR REPLACE INTO $TABLE (name, value) VALUES ('$name', '$value');"
+
     # Use INSERT OR REPLACE to handle both insertion and update in one statement.
-    # It finds the entry by (tag, name) and replaces the entire row, including 'value'.
     
     sqlite_exec "$insert_sql"
     
-    if [ $? -eq 0 ]; then
-        echo "Set: tag='$tag', name='$name' to value='$value'"
-    else
-        decho "Error: Failed to set information." >&2
+    if [ "$?" != "0" ]; then
+        echo "$0: Failed to set [$name]." 
         return 1
     fi
 }
 
 # Function 4: Removes all table entries with matching tag and name
-# Arguments: $1 = tag, $2 = name
+# Arguments: $1 = name
 deleteInfo() {
-    if [ -z "$1" ] || [ -z "$2" ]; then
-        decho "Usage: deleteInfo <tag> <name>" >&2
+    if [ -z "$1" ]; then
+        echo "Usage: $0 <full variable name>" 
         return 1
     fi
 
-    local tag="$1"
-    local name="$2"
+    local name="$1"
     
-    local delete_sql="DELETE FROM main WHERE tag='$tag' AND name='$name';"
+    local delete_sql="DELETE FROM $TABLE WHERE name='$name';"
     
     sqlite_exec "$delete_sql"
     
     if [ $? -eq 0 ]; then
-        decho "Deleted entry for tag='$tag', name='$name'."
+        echo "Deleted entry for name='$name'."
     else
-        decho "Error: Failed to delete information." >&2
+        echo "Error: Failed to delete information." 
         return 1
     fi
 }
 
+_test_shell(){
+    rm ./data.db 
+    init 
+    for color in red green blue orange; do 
+        echo setInfo colors/$color "value-$color" 
+        setInfo colors/$color "value-$color" 
+    done
+    echo ""
+    getInfo
+    printf "\n\n>>> "
+    while read line; do 
+        eval $line 
+        printf "\n>>> "
+    done 
+}
 
-case "$1" in
-    -i|--init|init)
-        init
-        ;;
+MODE=PROD
+if [ "$MODE" = "DEV" ]; then
+   _test_shell
+else
+    # TODO: make better with getopts 
+    case "$1" in
+        -i|--init|init)
+            init
+            ;;
+        
+       -e|--env|env|-g|--get|get|-a|--all|all)
+            if [[ "-e|--env|env" = *"$1"* ]];then 
+                TRANSPOSE_CMD=print_as_env
+            fi
+            shift
+            if [ "$#" -eq 0 ]; then
+                getInfo 
+            else
+                getInfo "$@"
+            fi
+            ;;
 
-    -a|--all|all)
-        shift 
-        getAll "$@" 
-        ;;
-    -g|--get|get)
-        shift
-        if [ "$#" -eq 0 ]; then
-            getInfo --all
-        else
-            getInfo "$@"
-        fi
-        ;;
-    -s|--set|set)
-        shift 
-        setInfo "$@"
+        -s|--set|set)
+            shift 
+            setInfo "$@"
+            ;;
 
-        ;;
-    -d|--delete|delete|del)
-        shift 
-        deleteInfo "$@"
+        -d|--delete|delete|del|--rm|--remove)
+            shift 
+            deleteInfo "$@"
+            ;;
 
-        ;;
-    --sql|sql)
-        shift 
-        sqlite_exec "$@"
-        ;;
-    *)
-        eval "$@"
-        exit $?
-        ;;
-esac
+        --sql|sql)
+            shift 
+            sqlite_exec "$@"
+            ;;
 
+        *)
+            if [ -z "$@" ];then
+                getInfo
+            else 
+                eval "$@"
+            fi
+            ;;
+    esac
+fi
 

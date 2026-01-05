@@ -130,5 +130,7 @@ int main(int argc, char* argv[]){
     if(ignore_file != stdout){
         fclose(ignore_file);
     }
+
+    return 0;
     
 }
