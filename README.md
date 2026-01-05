@@ -4,14 +4,14 @@ This repository is a collection of my personal projects focusing on systems prog
 
 ---
 
-### 📂 Project Overview
+### Overview
 
 | Project | Description | Primary Stack |
 | --- | --- | --- |
 | **`bare-server/`** | A minimalist C web server with `chroot` isolation. | C, POSIX Sockets |
 | **`data/`** | A CLI-based key-value and relational data store. | SQLite, Bash |
-| **`gemini/`** | A voice-assistant style API wrapper for Gemini. | HTML, CSS, Javascript, Google Generative AI API |
-| **`git-ignore/`** | Custom Git extension for `.gitignore` management. | Bash / Sh / Zsh |
+| **`gemini/`** | A voice-assistant style API wrapper for Google's Generative AI. | HTML, CSS, Javascript, Google Generative AI API |
+| **`git-ignore/`** | Custom Git extension for `.gitignore` file management. | Bash / Sh / Zsh |
 | **`security/`** | Utility scripts for high level Netcat and OpenSSL workflows. | Bash / Sh / Zsh, OpenSSL, Netcat  |
 
 ---
@@ -48,8 +48,8 @@ A toolkit for network debugging and encryption. These scripts abstract the compl
 * Encrypting files or text 
 * Generating a sha256 hash digest.  
 * Port scanning and listener setup.
-* Socket connection and data transfers
-* Basic MQTT subscription and publishing
+* Socket connection and data transfers.
+* Basic MQTT subscription and publishing.
 
 ---
 
@@ -59,13 +59,12 @@ A toolkit for network debugging and encryption. These scripts abstract the compl
     ```bash 
     git clone origin https://github.com/cswaltzinger/portfolio.git path/to/destination
     ```
-2) Then simply go into each repository and follow thier instructions to build/run the programs 
+2) Then simply go into each repository and follow its README.md instructions to build/run the programs 
 
 ### NOTE: 
-The following are common dependencies within this project:
+The following are common dependencies within this project and require thier listed version number or newer:
 - Openssl: LibreSSL 3.3.6
 - GNU Make: 4.3
 - gcc: 13.3.0
 - sqlite3: 3.39.5
-- nodejs: 20.11.0 
-    - npm: 10.2.4
+- GNU bash: 3.2.57
