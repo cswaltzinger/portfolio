@@ -57,7 +57,7 @@ A toolkit for network debugging and encryption. These scripts abstract the compl
 
 1) clone this repository:
     ```bash 
-    git clone origin https://github.com/cswaltzinger/portfolio.git path/to/destination
+    git clone https://github.com/cswaltzinger/portfolio.git path/to/destination
     ```
 2) Then simply go into each repository and follow its README.md instructions to build/run the programs 
 
