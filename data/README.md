@@ -1,8 +1,11 @@
 # CLI Data store 
 
 A lightweight executable file that can be used to store/retrieve sensitive data in the cli.
+---
+## Example
 
-
+![demo](./demo.gif)
+---
 
 ### Example usage: storing an API key
 

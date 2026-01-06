@@ -107,8 +107,18 @@ getInfo() {
     fi
 
     local name="$1"
-    local select_sql="SELECT * FROM $TABLE WHERE name LIKE '%$name%';"
+    local values='value'
+    if [ -t 1 ] || [ "$TRANSPOSE_CMD" = "print_as_env" ];then
+        values='*'
+    fi
 
+    if [ "$TRANSPOSE_CMD" = "print_as_env" ];then
+        values='*'
+    fi
+
+
+
+    local select_sql="SELECT $values FROM $TABLE WHERE name LIKE '%$name%';"
     sqlite_exec "$select_sql"
     
     return $?
