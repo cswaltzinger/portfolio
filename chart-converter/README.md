@@ -2,7 +2,7 @@
 
 This respository is a proof of concept to help nurses convert patient charts from one doctor's form to another at the click of a button. 
 
-![Video](https://raw.githubusercontent.com/cswaltzinger/portfolio/main/chart-converter/demo.mp4)
+[](https://raw.githubusercontent.com/cswaltzinger/portfolio/main/chart-converter/demo.mp4)
 <!-- ![](./demo.mp4) -->
 <!-- ![]( https://raw.githubusercontent.com/cswaltzinger/portfolio/main/chart-converter/demo.mp4 ) -->
 <!-- ![](my_video.mov) -->
