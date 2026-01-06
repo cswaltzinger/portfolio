@@ -7,6 +7,11 @@ To run this web application, simply serve this directory with your choice of htt
 $ python3 -m http.server 8000
 Serving HTTP on :: port 8000 (http://[::]:8000/) ...
 ```
+---
+
+![demo](demo.gif)
+
+---
 
 ## NOTE: 
 API keys are not provided.  To use this application, you need to first obtian your own API key at [ this link ](aistudio.google.com) and create the file `api-key.js` with the following contents:
