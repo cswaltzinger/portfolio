@@ -2,6 +2,8 @@
 
 This respository is a proof of concept to help nurses convert patient charts from one doctor's form to another at the click of a button. 
 
+---
+
 ![Gif](demo.gif)
 
 ---
