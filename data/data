@@ -1,7 +1,7 @@
 #!/bin/bash
 
 
-MODE="PROD"
+MODE="${MODE:-PROD}"
 
 DB_FILE="${DATA_DB_FILE:-$HOME/.config/data.db.sqlite}"
 SEP="${DATA_DB_SEPORATOR:-" "}"
@@ -183,6 +183,12 @@ _test_shell(){
     done 
 }
 
+config(){
+    for var in MODE TABLE DB_FILE;do 
+        eval "echo -e \"$var:\t\$$var\""
+    done
+}
+
 MODE=PROD
 if [ "$MODE" = "DEV" ]; then
    _test_shell
@@ -219,7 +225,11 @@ else
             shift 
             sqlite_exec "$@"
             ;;
+        clean)
+            rm $DB_FILE
+            clear 
 
+            ;;
         *)
             if [ -z "$@" ];then
                 getInfo
