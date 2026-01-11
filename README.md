@@ -6,13 +6,13 @@ This repository is a collection of my personal projects focusing on systems prog
 
 ### Overview
 
-| Project | Description | Primary Stack |
-| --- | --- | --- |
-| **`bare-server/`** | A minimalist C web server with `chroot` isolation. | C, POSIX Sockets |
-| **`data/`** | A CLI-based key-value and relational data store. | SQLite, Bash |
-| **`gemini/`** | A voice-assistant style API wrapper for Google's Generative AI. | HTML, CSS, Javascript, Google Generative AI API |
-| **`git-ignore/`** | Custom Git extension for `.gitignore` file management. | Bash / Sh / Zsh |
-| **`security/`** | Utility scripts for high level Netcat and OpenSSL workflows. | Bash / Sh / Zsh, OpenSSL, Netcat  |
+| Project | Description | Primary Stack | Usage |
+| :--- | :--- | :--- | :--- |
+| [**`bare-server/`**](./bare-server/) | A minimalist C web server with `chroot` isolation. | C, POSIX Sockets | ![Gif](bare-server/demo.gif) |
+| [**`data/`**](./data/) | A CLI-based key-value and relational data store. | SQLite, Bash | ![Gif](data/demo.gif) |
+| [**`gemini/`**](./gemini/) | A voice-assistant style API wrapper for Google's Generative AI. | HTML, CSS, Javascript, Google Generative AI API | ![Gif](gemeni/demo.gif) |
+| [**`git-ignore/`**](./git-ignore/) | Custom Git extension for `.gitignore` file management. | Bash / Sh / Zsh | ![Gif](git-ignore/demo.gif) |
+| [**`security/`**](./security/) | Utility scripts for high level Netcat and OpenSSL workflows. | Bash / Sh / Zsh, OpenSSL, Netcat | |
 
 ---
 
