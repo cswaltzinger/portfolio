@@ -1,4 +1,4 @@
-## CSW Portfolio: Systems & Tooling
+## Chris Waltzinger Portfolio: Systems & Tooling
 
 This repository is a collection of my personal projects focusing on systems programming, CLI productivity tools, and API integrations. Each project is designed to be lightweight, functional, and easy to deploy.
 
