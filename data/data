@@ -24,12 +24,23 @@ fi
 
 
 
+
+_is_number(){
+    if [[ "$@" =~ ^[+-]?[0-9]+$ ]]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+
 ### value can be one of the two following functions 
 TRANSPOSE_CMD=""
 print_as_env(){
     print_as_env_helpper(){
-        local name=$(basename "$1")
-        shift 
+        local index="$1"
+        local name=$(basename "$2")
+        shift 2 
         local value="$@"
         printf "%s=%s\n" "$name" "$value"
     }
@@ -40,10 +51,13 @@ print_as_env(){
 
 pretty_print(){
     pretty_print_helpper(){
-        local name="$1"
-        shift 
+        # echo "{$@}"
+        # return 0
+        local index="$1"
+        local name="$2"
+        shift 2
         local value="$@"
-        printf "%s [ %s ]\n" "$name" "$value"
+        printf "%s: %s [ %s ]\n" "$index" "$name" "$value"
     }
     while read line; do 
         pretty_print_helpper $line
@@ -54,13 +68,23 @@ pretty_print(){
 sqlite_exec() {
     local sql_command="$1"
     if [ -t 1 ]; then
+        ### stdout is tty
         if [ -z "$TRANSPOSE_CMD" ];then 
             TRANSPOSE_CMD=pretty_print
         fi
         sqlite3 -batch -separator "$SEP" "$DB_FILE" "$sql_command" | $TRANSPOSE_CMD
     else 
+        print_value(){
+            shift
+            shift 
+            printf "%s" "$@"
+        }
+        ### stdout is not tty
         if [ -z "$TRANSPOSE_CMD" ];then 
-            sqlite3 -batch -separator "$SEP" "$DB_FILE" "$sql_command" 
+            sqlite3 -batch -separator "$SEP" "$DB_FILE" "$sql_command" \
+            | while read line ; do 
+                print_value $line 
+            done
         else
             sqlite3 -batch -separator "$SEP" "$DB_FILE" "$sql_command" | $TRANSPOSE_CMD
 
@@ -97,28 +121,32 @@ init() {
     fi
 }
 
+getIndex(){
+    
+    if [ "$#" = "0" ]; then
+        sqlite_exec "SELECT  * FROM ( SELECT  ROW_NUMBER() OVER (ORDER BY name) AS row_num, * FROM $TABLE);"
+        return $?
+    fi
 
+    row_num=$1
+    sqlite_exec "SELECT * FROM ( SELECT ROW_NUMBER() OVER (ORDER BY name) AS row_num, * FROM $TABLE) WHERE row_num = $row_num ;"
+}
 # Function 2: Gets the value of an item
 # Arguments: $1 = tag, $2 = name
 getInfo() {
     if [ "$#" = "0" ] || [ "$1" = "--all" ] || [ "$1" = "-a" ] || [ "$1" = "all" ]; then
-        sqlite_exec "SELECT * FROM $TABLE;"
+        sqlite_exec "SELECT  * FROM ( SELECT  ROW_NUMBER() OVER (ORDER BY name) AS row_num, * FROM $TABLE);"
         return $?
     fi
 
     local name="$1"
-    local values='value'
-    if [ -t 1 ] || [ "$TRANSPOSE_CMD" = "print_as_env" ];then
-        values='*'
-    fi
 
-    if [ "$TRANSPOSE_CMD" = "print_as_env" ];then
-        values='*'
-    fi
+    if _is_number $name; then 
+        getIndex $name 
+        return $?
+    fi 
 
-
-
-    local select_sql="SELECT $values FROM $TABLE WHERE name LIKE '%$name%';"
+    local select_sql="SELECT * FROM ( SELECT  ROW_NUMBER() OVER (ORDER BY name) AS row_num, * FROM $TABLE) WHERE name LIKE '%$name%';"
     sqlite_exec "$select_sql"
     
     return $?
@@ -240,10 +268,13 @@ else
             clear 
 
             ;;
-        *)
-            if [ -z "$@" ];then
+        --eval | *)
+            if [[ -z "$@" ]];then
                 getInfo
             else 
+                if [ "$1" = "--eval" ];then
+                    shift 
+                fi
                 eval "$@"
             fi
             ;;
