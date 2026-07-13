@@ -6,13 +6,15 @@ This repository is a collection of my personal projects focusing on systems prog
 
 ### Overview
 
-| Project | Description | Primary Stack | Usage |
-| :--- | :--- | :--- | :--- |
-| [**`bare-server/`**](./bare-server/) | A minimalist C web server with `chroot` isolation. | C, POSIX Sockets | ![Gif](bare-server/demo.gif) |
-| [**`data/`**](./data/) | A CLI-based key-value and relational data store. | SQLite, Bash | ![Gif](data/demo.gif) |
-| [**`gemini/`**](./gemini/) | A voice-assistant style API wrapper for Google's Generative AI. | HTML, CSS, Javascript, Google Generative AI API | ![Gif](gemeni/demo.gif) |
-| [**`git-ignore/`**](./git-ignore/) | Custom Git extension for `.gitignore` file management. | Bash / Sh / Zsh | ![Gif](git-ignore/demo.gif) |
-| [**`security/`**](./security/) | Utility scripts for high level Netcat and OpenSSL workflows. | Bash / Sh / Zsh, OpenSSL, Netcat | |
+| Project | Description | Primary Stack  |
+| :--- | :--- | :---  |
+| [**`bare-server/`**](./bare-server/) | A minimalist C web server with `chroot` isolation. | C, POSIX Sockets |
+| [**`chart-converter/`**](./chart-converter/) | A simple AI chat interface to help nurses create/transpose patient charts. | HTML, CSS, Javascript, Docker Model Runner |
+| [**`data/`**](./data/) | A CLI-based key-value and relational data store. | SQLite, Bash |
+| [**`gemini/`**](./gemini/) | A voice-assistant style API wrapper for Google's Generative AI. | HTML, CSS, Javascript, Google Generative AI API  |
+| [**`git-ignore/`**](./git-ignore/) | Custom Git extension for `.gitignore` file management. | Bash / Sh / Zsh |
+| [**`security/`**](./security/) | Utility scripts for high level Netcat and OpenSSL workflows. | Bash / Sh / Zsh, OpenSSL, Netcat | 
+
 
 ---
 
@@ -24,23 +26,30 @@ A HTTP server written in C. Unlike standard development servers, this implements
 
 * **Key Feature:** Low-level socket handling and process isolation.
 
-#### 2. Data CLI
+#### 2. Chart-Converter
+
+A simple chart conversion software written in nodejs  to help nurses convert patient charts for different doctors.  By handing off a large part of the chart generation to AI, we can effectivly transpose the data from one doctor's form to another in seconds.  
+
+* **Key Feature:** Applies secure coding practices to secure patient medical data.   
+
+
+#### 3. Data CLI
 
 This tool allows you to treat your terminal as a database. It uses **SQLite** to ensure data integrity while providing a clean command-line interface for `CRUD` operations.
 
 * **Example:** `data set "api_key" "12345"`
 
-#### 3. Gemini Assistant
+#### 4. Gemini Assistant
 
 A conversational wrapper for the Gemini API. It is designed to function as a minimal digital assistant, processing natural language queries and returning structured data, mimicking the "Siri" user experience for terminal or app integration.
 
-#### 4. Git-Ignore
+#### 5. Git-Ignore
 
 A workflow tool that allows you to manage `.gitignore` files without manual editing. It enables users to quickly add templates or specific file patterns directly from the command line.
 
 * **Example:** `git ignore node_modules`
 
-#### 5. Security 
+#### 6. Security 
 
 A toolkit for network debugging and encryption. These scripts abstract the complex flags of **Netcat** and **OpenSSL** to perform tasks like:
 
@@ -68,3 +77,7 @@ The following are common dependencies within this project and require thier list
 - gcc: 13.3.0
 - sqlite3: 3.39.5
 - GNU bash: 3.2.57
+- Docker Desktop: 4.79.0
+- Docker Model Runner: 1.2.1
+- NodeJS: 20.11.0
+- Npm: 10.2.4

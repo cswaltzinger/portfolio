@@ -22,8 +22,4 @@ This application attempts to be HIPPA complient by using the following practices
  
  - A firewall (in production) only allows connections from the local area network (LAN).  
 
-## Example Usage 
-NOTE: the demo below is slow because of the file conversion from the original .mov format to a .gif
-
-![demo](demo.gif)
 
