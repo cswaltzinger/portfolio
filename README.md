@@ -12,9 +12,10 @@ This repository is a collection of my personal projects focusing on systems prog
 | [**`chart-converter/`**](./chart-converter/) | A simple AI chat interface to help nurses create/transpose patient charts. | HTML, CSS, Javascript, Docker Model Runner |
 | [**`data/`**](./data/) | A CLI-based key-value and relational data store. | SQLite, Bash |
 | [**`gemini/`**](./gemini/) | A voice-assistant style API wrapper for Google's Generative AI. | HTML, CSS, Javascript, Google Generative AI API  |
-| [**`git-ignore/`**](./git-ignore/) | Custom Git extension for `.gitignore` file management. | Bash / Sh / Zsh |
+| [**`git-ignore/`**](./git-ignore/) | Custom Git extension for `.gitignore` file management. | Bash / Sh / Zsh , C |
 | [**`security/`**](./security/) | Utility scripts for high level Netcat and OpenSSL workflows. | Bash / Sh / Zsh, OpenSSL, Netcat | 
 | [**`pawk/`**](./pawk/) | A Python interpretation of the unix `awk` utility | python, bash, data parsing| 
+| [**`simple-promblems/`**](./simple-promblems/) |  HTML documents that are desgined to solve one specific problem | HTML, CSS, Javascript | 
 
 
 ---
@@ -29,7 +30,7 @@ A HTTP server written in C. Unlike standard development servers, this implements
 
 #### 2. Chart-Converter
 
-A simple chart conversion software written in nodejs  to help nurses convert patient charts for different doctors.  By handing off a large part of the chart generation to AI, we can effectivly transpose the data from one doctor's form to another in seconds.  
+A simple chart conversion software written in nodejs  to help nurses convert patient charts for different doctors.  By handing off a large part of the chart generation to AI, we can effectively transpose the data from one doctor's form to another in seconds.  
 
 * **Key Feature:** Applies secure coding practices to secure patient medical data.   
 
@@ -54,7 +55,7 @@ A workflow tool that allows you to manage `.gitignore` files without manual edit
 
 A toolkit for network debugging and encryption. These scripts abstract the complex flags of **Netcat** and **OpenSSL** to perform tasks like:
 
-* Generating keypairs for asymetric encryption
+* Generating keypairs for asymmetric encryption
 * Encrypting files or text 
 * Generating a sha256 hash digest.  
 * Port scanning and listener setup.
@@ -63,10 +64,15 @@ A toolkit for network debugging and encryption. These scripts abstract the compl
 
 #### 7. Pawk Utility 
 
-`pawk` is a python interpretation of the standard unix tool `awk`. 
+`pawk` is a python interpretation of the standard unix tool `awk`. It allows users to parse large files with a faster learning curve than the traditional `awk` utility as it is based in python.  
 
 
 * **Example:** see [`pawk/README.md`](./pawk/README.md)
+
+#### 8. Simple Problems 
+HTML documents that are desgined to solve one specific problem.  They are mostly intuitive GUI's and should be easily usable in a browser.  
+
+
 ---
 
 ### Getting Started

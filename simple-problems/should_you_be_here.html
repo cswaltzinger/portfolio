@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Should You Be Here?</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Special+Elite&display=swap');
+
+  :root{
+    --paper: #f1ead9;
+    --paper-dark: #e6dcc4;
+    --ink: #221f1a;
+    --ink-soft: #534b3d;
+    --stamp-red: #a3382c;
+    --stamp-green: #4c5d3a;
+    --manila: #c8a66a;
+    --line: rgba(34,31,26,0.18);
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Courier Prime', monospace;
+    min-height: 100vh;
+  }
+
+  body {
+    background-image:
+      radial-gradient(circle at 20% 10%, rgba(0,0,0,0.03), transparent 40%),
+      radial-gradient(circle at 80% 90%, rgba(0,0,0,0.04), transparent 45%);
+  }
+
+  .folder {
+    max-width: 640px;
+    margin: 6vh auto;
+    padding: 0 24px 80px;
+  }
+
+  .tab {
+    display: inline-block;
+    background: var(--manila);
+    color: var(--ink);
+    font-family: 'Special Elite', monospace;
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    padding: 6px 18px;
+    border-radius: 4px 4px 0 0;
+    border: 1px solid var(--line);
+    border-bottom: none;
+    transform: rotate(-1deg);
+    position: relative;
+    top: 1px;
+  }
+
+  .sheet {
+    background: var(--paper-dark);
+    border: 1px solid var(--line);
+    border-radius: 2px 10px 10px 10px;
+    padding: 40px 36px 36px;
+    box-shadow: 0 18px 40px -20px rgba(0,0,0,0.35), 0 2px 0 rgba(0,0,0,0.04);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .case-no {
+    font-family: 'Special Elite', monospace;
+    font-size: 11px;
+    color: var(--ink-soft);
+    letter-spacing: 0.08em;
+    margin-bottom: 18px;
+  }
+
+  h1 {
+    font-family: 'Special Elite', monospace;
+    font-weight: 400;
+    font-size: clamp(28px, 6vw, 40px);
+    line-height: 1.15;
+    margin: 0 0 6px;
+    letter-spacing: -0.01em;
+  }
+
+  .sub {
+    color: var(--ink-soft);
+    font-style: italic;
+    font-size: 14px;
+    margin: 0 0 28px;
+  }
+
+  .field {
+    border-top: 1px dashed var(--line);
+    padding: 14px 0;
+    display: flex;
+    gap: 14px;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .field:last-of-type { border-bottom: 1px dashed var(--line); }
+
+  .field .q {
+    flex: 0 0 26px;
+    color: var(--stamp-red);
+    font-weight: 700;
+  }
+
+  .field .a { color: var(--ink); }
+  .field .a strong { background: rgba(76,93,58,0.15); padding: 0 3px; }
+
+  .verdict-zone {
+    margin-top: 34px;
+    text-align: center;
+  }
+
+  button#enterBtn {
+    font-family: 'Special Elite', monospace;
+    background: var(--ink);
+    color: var(--paper);
+    border: none;
+    padding: 14px 30px;
+    font-size: 14px;
+    letter-spacing: 0.1em;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: transform 0.15s ease, background 0.15s ease;
+  }
+  button#enterBtn:hover { background: #3a352b; }
+  button#enterBtn:active { transform: scale(0.97); }
+  button#enterBtn:focus-visible {
+    outline: 3px solid var(--stamp-red);
+    outline-offset: 3px;
+  }
+
+  .hint {
+    margin-top: 10px;
+    font-size: 11px;
+    color: var(--ink-soft);
+    font-style: italic;
+  }
+
+  .stamp {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    opacity: 0;
+  }
+
+  .stamp .mark {
+    font-family: 'Special Elite', monospace;
+    font-size: clamp(34px, 9vw, 56px);
+    border: 6px double currentColor;
+    padding: 10px 26px;
+    border-radius: 8px;
+    transform: rotate(-9deg) scale(1.4);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    opacity: 0;
+  }
+
+  .stamp.show {
+    opacity: 1;
+  }
+  .stamp.show .mark {
+    animation: slam 0.32s cubic-bezier(.36,1.9,.4,1) forwards;
+  }
+
+  .stamp.approve .mark { color: var(--stamp-green); }
+  .stamp.deny .mark { color: var(--stamp-red); }
+
+  @keyframes slam {
+    0% { opacity: 0; transform: rotate(-9deg) scale(2.6); }
+    60% { opacity: 1; transform: rotate(-7deg) scale(0.92); }
+    100% { opacity: 1; transform: rotate(-7deg) scale(1); }
+  }
+
+  .verdict-text {
+    margin-top: 18px;
+    font-size: 13px;
+    color: var(--ink-soft);
+    min-height: 18px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .stamp.show .mark { animation: none; opacity: 1; transform: rotate(-7deg) scale(1); }
+    button#enterBtn:active { transform: none; }
+  }
+
+  @media (max-width: 480px) {
+    .folder { margin: 4vh auto; padding: 0 14px 60px; }
+    .sheet { padding: 30px 20px 28px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="folder">
+  <div class="tab">FILE NO. 0001 — VISITOR INTAKE</div>
+  <div class="sheet">
+    <div class="case-no">DEPT. OF WHO LET YOU IN &nbsp;·&nbsp; FORM 27-B (REVISED, AGAIN)</div>
+    <h1>Should you be here?</h1>
+    <p class="sub">An informal inquiry. Answer honestly — we have no way of checking anyway.</p>
+
+    <div class="field"><div class="q">1.</div><div class="a">Did someone <strong>send you a link</strong> and say "you have to see this"?</div></div>
+    <div class="field"><div class="q">2.</div><div class="a">Are you currently <strong>supposed to be doing something else</strong>?</div></div>
+    <div class="field"><div class="q">3.</div><div class="a">Did you arrive here via a <strong>questionable Google search</strong>?</div></div>
+    <div class="field"><div class="q">4.</div><div class="a">Is your cursor <strong>hovering</strong> right now out of pure suspicion?</div></div>
+
+    <div class="verdict-zone">
+      <button id="enterBtn" type="button">FILE FOR ENTRY</button>
+      <div class="hint">Press once. The system is not appealable.</div>
+      <div class="verdict-text" id="verdictText"></div>
+    </div>
+
+    <div class="stamp" id="stamp"><div class="mark" id="stampMark">PENDING</div></div>
+  </div>
+</div>
+
+<script>
+  const btn = document.getElementById('enterBtn');
+  const stamp = document.getElementById('stamp');
+  const mark = document.getElementById('stampMark');
+  const verdictText = document.getElementById('verdictText');
+
+  const outcomes = [
+    { word: 'Approved', cls: 'approve', line: "You may proceed. We were never going to stop you anyway." },
+    { word: 'Cleared', cls: 'approve', line: "Congratulations, you have technically passed a test with no questions and no answers." },
+    { word: 'Suspicious', cls: 'deny', line: "You may still enter. We're just noting it for the file." },
+    { word: 'Welcome', cls: 'approve', line: "That's it. That's the whole process. Did you expect more?" },
+    { word: 'Loitering', cls: 'deny', line: "Detected: mild loitering. Permitted under Subsection 4(b), 'curiosity.'" }
+  ];
+
+  btn.addEventListener('click', () => {
+    const choice = outcomes[Math.floor(Math.random() * outcomes.length)];
+    stamp.classList.remove('show', 'approve', 'deny');
+    void stamp.offsetWidth; // restart animation
+    mark.textContent = choice.word;
+    stamp.classList.add('show', choice.cls);
+    verdictText.textContent = choice.line;
+    btn.textContent = 'FILE AGAIN';
+  });
+</script>
+
+</body>
+</html>

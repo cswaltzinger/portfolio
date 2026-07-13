@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wedding Seating Planner</title>
+<style>
+  :root{
+    --cream:#fbf6f0;
+    --white:#fffdfb;
+    --blush:#f3dfd8;
+    --rose:#b3697a;
+    --rose-dark:#8a4a5a;
+    --gold:#c9a15a;
+    --ink:#3a2f2f;
+    --line:#e3d3c8;
+    --muted:#8a7263;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background:var(--cream);
+    color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    display:flex;
+    flex-direction:column;
+  }
+  header{
+    background:var(--white);
+    border-bottom:2px solid var(--gold);
+    padding:.85rem 1.25rem;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:1rem;
+    flex-wrap:wrap;
+  }
+  header h1{
+    font-family:Georgia,'Times New Roman',serif;
+    font-size:1.35rem;
+    color:var(--rose-dark);
+    margin:0;
+    letter-spacing:.3px;
+  }
+  header .sub{
+    font-size:.78rem;
+    color:var(--muted);
+    margin-top:2px;
+  }
+  .header-actions{display:flex; gap:.5rem; flex-wrap:wrap;}
+  button{
+    font-family:inherit;
+    font-size:.85rem;
+    cursor:pointer;
+    border-radius:6px;
+    padding:.45rem .8rem;
+    border:1px solid var(--line);
+    background:var(--white);
+    color:var(--ink);
+    transition:background .15s, color .15s;
+  }
+  button:hover{background:var(--blush);}
+  button.primary{
+    background:var(--rose);
+    color:#fff;
+    border-color:var(--rose-dark);
+  }
+  button.primary:hover{background:var(--rose-dark);}
+  button.danger{color:#a33; border-color:#e0b8b8;}
+  button.danger:hover{background:#fbe9e9;}
+  button.icon{padding:.3rem .45rem; line-height:1;}
+  button:disabled{opacity:.45; cursor:not-allowed;}
+
+  .help{
+    background:var(--white);
+    border-bottom:1px solid var(--line);
+    padding:.4rem 1.25rem;
+    font-size:.82rem;
+  }
+  .help summary{cursor:pointer; color:var(--rose-dark); font-weight:600;}
+  .help ol{margin:.5rem 0 .3rem 1.2rem; padding:0; color:var(--ink);}
+  .help li{margin-bottom:.2rem;}
+
+  .app{
+    flex:1;
+    display:grid;
+    grid-template-columns:280px 1fr 300px;
+    min-height:0;
+  }
+  @media (max-width:960px){
+    .app{grid-template-columns:1fr; grid-auto-rows:auto;}
+  }
+
+  .panel{
+    overflow-y:auto;
+    padding:1rem;
+    background:var(--white);
+  }
+  .sidebar-left{border-right:1px solid var(--line);}
+  .sidebar-right{border-left:1px solid var(--line);}
+
+  h2{
+    font-family:Georgia,serif;
+    font-size:1rem;
+    color:var(--rose-dark);
+    margin:0 0 .6rem 0;
+  }
+  .section{margin-bottom:1.5rem;}
+
+  .room-item{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:.4rem;
+    padding:.55rem .6rem;
+    border:1px solid var(--line);
+    border-radius:8px;
+    margin-bottom:.5rem;
+    cursor:pointer;
+    background:var(--cream);
+  }
+  .room-item.active{
+    border-color:var(--gold);
+    background:var(--blush);
+  }
+  .room-name{font-weight:600; font-size:.9rem;}
+  .room-meta{font-size:.72rem; color:var(--muted); margin-top:2px;}
+  .room-actions{display:flex; gap:.25rem; flex-shrink:0;}
+  .room-actions button{padding:.2rem .4rem; font-size:.75rem;}
+
+  form.room-form label, .field label{
+    display:block;
+    font-size:.75rem;
+    color:var(--muted);
+    margin-bottom:.2rem;
+  }
+  form.room-form .row{display:flex; gap:.5rem; margin-bottom:.6rem;}
+  form.room-form input, select, .field input{
+    width:100%;
+    padding:.4rem .5rem;
+    border:1px solid var(--line);
+    border-radius:6px;
+    font-size:.85rem;
+    font-family:inherit;
+    background:#fff;
+  }
+  form.room-form input:focus, select:focus, .field input:focus{outline:2px solid var(--gold); outline-offset:1px;}
+
+  .toolbar{display:flex; gap:.5rem; align-items:flex-end; flex-wrap:wrap;}
+  .toolbar .field{flex:1; min-width:130px;}
+
+  .hint{color:var(--muted); font-size:.82rem; line-height:1.4;}
+
+  .canvas-area{display:flex; flex-direction:column; min-height:0;}
+  .canvas-summary{
+    padding:.5rem 1rem;
+    font-size:.82rem;
+    color:var(--muted);
+    border-bottom:1px solid var(--line);
+    background:var(--white);
+  }
+  .canvas-wrap{
+    flex:1;
+    min-height:200px;
+    padding:1rem;
+    display:flex;
+  }
+  #roomSvg{
+    width:100%;
+    height:100%;
+    background:var(--white);
+    border-radius:10px;
+    box-shadow:0 1px 4px rgba(0,0,0,.08);
+  }
+
+  .table-shape{fill:#fff8f0; stroke:var(--rose-dark); stroke-width:.12; cursor:grab;}
+  .table-shape.selected{stroke:var(--gold); stroke-width:.22;}
+  .table-group{cursor:grab;}
+  .table-group:active{cursor:grabbing;}
+  .table-label{font-size:.95px; fill:var(--ink); font-weight:600; font-family:Georgia,serif;}
+  .seat{cursor:pointer;}
+  .seat-empty{fill:#efe3da; stroke:var(--rose); stroke-width:.06;}
+  .seat-filled{fill:var(--rose); stroke:var(--rose-dark); stroke-width:.06;}
+  .seat-label{font-size:1px; fill:#3a2f2f; pointer-events:none;}
+  .seat-filled ~ .seat-label, .seat-filled + .seat-label{
+    fill:black;
+    /* fill: #fff; */
+  }
+  .grid-line{stroke:#ecdfd3; stroke-width:.03;}
+  .room-border{fill:#fffefb; stroke:#8a7263; stroke-width:.15;}
+  .dim-label{font-size:.9px; fill:var(--muted);}
+  .hint-text{font-size:1.1px; fill:var(--muted);}
+
+  .seat-row{display:flex; align-items:center; gap:.4rem; margin-bottom:.4rem;}
+  .seat-row .seat-num{
+    width:1.6rem; text-align:right; font-size:.75rem; color:var(--muted); flex-shrink:0;
+  }
+  .seat-row input{
+    flex:1;
+    padding:.35rem .5rem;
+    border:1px solid var(--line);
+    border-radius:6px;
+    font-size:.85rem;
+    font-family:inherit;
+  }
+  .seat-row input:focus{outline:2px solid var(--gold); outline-offset:1px;}
+
+  .stepper{display:flex; align-items:center; gap:.4rem;}
+  .stepper button{padding:.15rem .55rem; font-size:.9rem;}
+  .stepper .val{min-width:2.2rem; text-align:center; font-size:.9rem; font-weight:600;}
+
+  .dim-stepper-row{display:flex; justify-content:space-between; align-items:center; margin-bottom:.5rem; font-size:.82rem;}
+
+  .panel-header{display:flex; justify-content:space-between; align-items:center; margin-bottom:.4rem;}
+  .table-shape-badge{
+    display:inline-block; font-size:.7rem; padding:.15rem .5rem; border-radius:999px;
+    background:var(--blush); color:var(--rose-dark); font-weight:600; text-transform:uppercase; letter-spacing:.03em;
+  }
+
+  hr.sep{border:none; border-top:1px solid var(--line); margin:.9rem 0;}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Wedding Seating Planner</h1>
+    <div class="sub">Lay out rooms, arrange tables, and seat your guests</div>
+  </div>
+  <div class="header-actions">
+    <button onclick="exportJSON()">Export JSON</button>
+    <button onclick="document.getElementById('importFileInput').click()">Import JSON</button>
+    <input type="file" id="importFileInput" accept="application/json,.json" style="display:none" onchange="handleImportFile(this)">
+    <button class="danger" onclick="clearAll()">Clear All</button>
+  </div>
+</header>
+
+<details class="help">
+  <summary>How to use this planner</summary>
+  <ol>
+    <li>Create a room below with its width and length in feet.</li>
+    <li>Add round or rectangular tables, then drag them anywhere inside the room.</li>
+    <li>Click a table to select it, and use the +/- buttons on the right to set its size and number of chairs.</li>
+    <li>Type each guest's name into a seat on the right, or click a chair in the drawing to jump straight to it.</li>
+    <li>Use <strong>Export JSON</strong> to save your plan to a file, and <strong>Import JSON</strong> to load it again later or on another computer.</li>
+  </ol>
+</details>
+
+<div class="app">
+
+  <div class="panel sidebar-left">
+    <div class="section">
+      <h2>Rooms</h2>
+      <div id="roomListEl"></div>
+    </div>
+
+    <div class="section">
+      <h2>Add a Room</h2>
+      <form class="room-form" onsubmit="onRoomFormSubmit(event)">
+        <label for="roomNameInput">Room name</label>
+        <div class="row"><input id="roomNameInput" type="text" placeholder="e.g. Reception Hall"></div>
+        <div class="row">
+          <div style="flex:1">
+            <label for="roomWidthInput">Width (ft)</label>
+            <input id="roomWidthInput" type="number" min="4" max="300" step="1" value="40">
+          </div>
+          <div style="flex:1">
+            <label for="roomHeightInput">Length (ft)</label>
+            <input id="roomHeightInput" type="number" min="4" max="300" step="1" value="60">
+          </div>
+        </div>
+        <button type="submit" class="primary" style="width:100%">Create Room</button>
+      </form>
+    </div>
+
+    <div class="section">
+      <h2>Add a Table</h2>
+      <div class="toolbar">
+        <div class="field">
+          <label for="newTableShape">Table shape</label>
+          <select id="newTableShape">
+            <option value="circle">Round table</option>
+            <option value="rect">Rectangular table</option>
+          </select>
+        </div>
+      </div>
+      <button class="primary" style="width:100%; margin-top:.6rem" onclick="addTable(document.getElementById('newTableShape').value)">Add Table to Active Room</button>
+      <p class="hint" style="margin-top:.5rem">New tables start with 8 chairs. Select the table on the drawing to add or remove chairs and rename it.</p>
+    </div>
+  </div>
+
+  <div class="canvas-area">
+    <div class="canvas-summary" id="canvasSummary">No room selected.</div>
+    <div class="canvas-wrap">
+      <svg id="roomSvg" xmlns="http://www.w3.org/2000/svg"></svg>
+    </div>
+  </div>
+
+  <div class="panel sidebar-right" id="tablePanel">
+    <p class="hint">Select or add a table to edit its seating.</p>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  'use strict';
+
+  const STORAGE_KEY = 'weddingSeatingPlan_v1';
+
+  let state = { rooms: [], activeRoomId: null };
+  let selectedTableId = null;
+  let dragState = null;
+  let saveTimer = null;
+
+  // ---------- utilities ----------
+  function uid(){ return 'id_' + Math.random().toString(36).slice(2,10) + Date.now().toString(36); }
+  function clamp(v,min,max){ return Math.min(max, Math.max(min, v)); }
+  function round1(v){ return Math.round(v*10)/10; }
+  function escapeHtml(str){
+    return String(str).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  }
+  function truncate(str, n){
+    str = String(str);
+    return str.length > n ? str.slice(0, n-1) + '…' : str;
+  }
+  function scheduleSave(){
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => {
+      try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){ /* storage full or unavailable */ }
+    }, 250);
+  }
+  function loadFromStorage(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(raw){
+        const parsed = JSON.parse(raw);
+        if(parsed && Array.isArray(parsed.rooms)) state = parsed;
+      }
+    }catch(e){ /* ignore corrupt storage */ }
+  }
+
+  function getActiveRoom(){
+    return state.rooms.find(r => r.id === state.activeRoomId) || null;
+  }
+  function findTable(id){
+    for(const room of state.rooms){
+      const t = room.tables.find(t => t.id === id);
+      if(t) return t;
+    }
+    return null;
+  }
+  function getSelectedTable(){
+    return selectedTableId ? findTable(selectedTableId) : null;
+  }
+
+  // ---------- seat geometry ----------
+  function circleSeatPositions(radius, n){
+    const gap = 0.9;
+    const R = radius + gap;
+    const positions = [];
+    for(let i=0; i<n; i++){
+      const angle = -Math.PI/2 + i * (2*Math.PI/n);
+      positions.push({ x: R*Math.cos(angle), y: R*Math.sin(angle) });
+    }
+    return positions;
+  }
+
+  function rectSeatPositions(w, h, n){
+    const sides = [
+      { name:'top', len:w },
+      { name:'right', len:h },
+      { name:'bottom', len:w },
+      { name:'left', len:h },
+    ];
+    const total = 2*(w+h);
+    const raw = sides.map(s => n * s.len / total);
+    const counts = raw.map(Math.floor);
+    let assigned = counts.reduce((a,b)=>a+b,0);
+    let remainder = n - assigned;
+    const order = raw.map((r,i) => ({ i, frac: r - counts[i] })).sort((a,b) => b.frac - a.frac);
+    for(let k=0; k<remainder; k++){ counts[order[k % order.length].i]++; }
+
+    const gap = 0.9;
+    const positions = [];
+    sides.forEach((side, i) => {
+      const c = counts[i];
+      for(let j=0; j<c; j++){
+        const t = (j+1)/(c+1);
+        let x,y,nx,ny;
+        if(side.name==='top'){ x=-w/2+t*w; y=-h/2; nx=0; ny=-1; }
+        else if(side.name==='bottom'){ x=-w/2+t*w; y=h/2; nx=0; ny=1; }
+        else if(side.name==='left'){ x=-w/2; y=-h/2+t*h; nx=-1; ny=0; }
+        else { x=w/2; y=-h/2+t*h; nx=1; ny=0; }
+        positions.push({ x: x+nx*gap, y: y+ny*gap });
+      }
+    });
+    return positions;
+  }
+
+  function getTableHalfExtents(table){
+    if(table.shape === 'circle'){
+      const m = table.radius + 1.3;
+      return { hx:m, hy:m };
+    }
+    return { hx: table.width/2 + 1.3, hy: table.height/2 + 1.3 };
+  }
+  function clampTablePosition(table, room, nx, ny){
+    const { hx, hy } = getTableHalfExtents(table);
+    let minX = hx, maxX = room.width - hx;
+    if(minX > maxX){ minX = maxX = room.width/2; }
+    let minY = hy, maxY = room.height - hy;
+    if(minY > maxY){ minY = maxY = room.height/2; }
+    return { x: clamp(nx, minX, maxX), y: clamp(ny, minY, maxY) };
+  }
+
+  // ---------- room actions ----------
+  window.onRoomFormSubmit = function(evt){
+    evt.preventDefault();
+    const name = document.getElementById('roomNameInput').value.trim();
+    const width = parseFloat(document.getElementById('roomWidthInput').value) || 40;
+    const height = parseFloat(document.getElementById('roomHeightInput').value) || 60;
+    addRoom(name, width, height);
+    document.getElementById('roomNameInput').value = '';
+  };
+
+  function addRoom(name, width, height){
+    const room = {
+      id: uid(),
+      name: name || `Room ${state.rooms.length+1}`,
+      width: clamp(width, 4, 300),
+      height: clamp(height, 4, 300),
+      tables: []
+    };
+    state.rooms.push(room);
+    state.activeRoomId = room.id;
+    selectedTableId = null;
+    scheduleSave();
+    renderAll();
+  }
+
+  window.selectRoomFn = function(id){
+    state.activeRoomId = id;
+    selectedTableId = null;
+    scheduleSave();
+    renderAll();
+  };
+
+  window.deleteRoom = function(id){
+    if(!confirm('Delete this room and all its tables?')) return;
+    state.rooms = state.rooms.filter(r => r.id !== id);
+    if(state.activeRoomId === id){
+      state.activeRoomId = state.rooms.length ? state.rooms[0].id : null;
+      selectedTableId = null;
+    }
+    scheduleSave();
+    renderAll();
+  };
+
+  window.renameRoom = function(id){
+    const r = state.rooms.find(x => x.id === id);
+    if(!r) return;
+    const name = prompt('Room name', r.name);
+    if(name && name.trim()){
+      r.name = name.trim();
+      scheduleSave();
+      renderAll();
+    }
+  };
+
+  // ---------- table actions ----------
+  window.addTable = function(shape){
+    const room = getActiveRoom();
+    if(!room){ alert('Create or select a room first.'); return; }
+    const id = uid();
+    const idx = room.tables.length;
+    const col = idx % 5, row = Math.floor(idx/5);
+    let x = 4 + col*6, y = 4 + row*6;
+
+    let table;
+    if(shape === 'circle'){
+      table = { id, name:`Table ${idx+1}`, shape:'circle', x, y, radius:2.5, seats:8, names:Array(8).fill('') };
+    } else {
+      table = { id, name:`Table ${idx+1}`, shape:'rect', x, y, width:6, height:2.5, seats:8, names:Array(8).fill('') };
+    }
+    const pos = clampTablePosition(table, room, table.x, table.y);
+    table.x = pos.x; table.y = pos.y;
+
+    room.tables.push(table);
+    selectedTableId = id;
+    scheduleSave();
+    renderAll();
+  };
+
+  window.removeTable = function(id){
+    if(!confirm('Remove this table and its seating?')) return;
+    const room = getActiveRoom();
+    if(!room) return;
+    room.tables = room.tables.filter(t => t.id !== id);
+    if(selectedTableId === id) selectedTableId = null;
+    scheduleSave();
+    renderAll();
+  };
+
+  window.selectTable = function(id){
+    selectedTableId = id;
+    renderCanvas();
+    renderTablePanel();
+  };
+
+  window.updateCapacity = function(id, delta){
+    const t = findTable(id);
+    if(!t) return;
+    const newCap = clamp(t.seats + delta, 1, 24);
+    if(newCap === t.seats) return;
+    if(newCap > t.seats){
+      while(t.names.length < newCap) t.names.push('');
+    } else {
+      t.names.length = newCap;
+    }
+    t.seats = newCap;
+    scheduleSave();
+    renderCanvas();
+    renderTablePanel();
+    updateSummary();
+  };
+
+  window.updateRadius = function(id, delta){
+    const t = findTable(id);
+    if(!t) return;
+    t.radius = clamp(round1(t.radius + delta), 1, 6);
+    const room = getActiveRoom();
+    const pos = clampTablePosition(t, room, t.x, t.y);
+    t.x = pos.x; t.y = pos.y;
+    scheduleSave();
+    renderCanvas();
+    renderTablePanel();
+  };
+
+  window.updateRectDim = function(id, dim, delta){
+    const t = findTable(id);
+    if(!t) return;
+    const max = dim === 'width' ? 14 : 8;
+    t[dim] = clamp(round1(t[dim] + delta), 1, max);
+    const room = getActiveRoom();
+    const pos = clampTablePosition(t, room, t.x, t.y);
+    t.x = pos.x; t.y = pos.y;
+    scheduleSave();
+    renderCanvas();
+    renderTablePanel();
+  };
+
+  window.onTableNameInput = function(id, value){
+    const t = findTable(id);
+    if(!t) return;
+    t.name = value;
+    scheduleSave();
+    const labelEl = document.getElementById(`label-${id}`);
+    if(labelEl) labelEl.textContent = truncate(value || 'Table', 20);
+    const roomList = document.getElementById('roomListEl');
+    if(roomList) renderRoomList();
+  };
+
+  window.onSeatNameInput = function(tableId, seatIdx, value){
+    const t = findTable(tableId);
+    if(!t) return;
+    t.names[seatIdx] = value;
+    scheduleSave();
+    updateSeatDisplay(tableId, seatIdx, value);
+    updateSummary();
+    renderRoomList();
+  };
+
+  function updateSeatDisplay(tableId, seatIdx, value){
+    const g = document.querySelector(`g[data-table-id="${tableId}"] > g[data-seat-idx="${seatIdx}"]`);
+    if(!g) return;
+    const circle = g.querySelector('circle');
+    const text = g.querySelector('text');
+    const title = g.querySelector('title');
+    const trimmed = value.trim();
+    circle.setAttribute('class', trimmed ? 'seat-filled' : 'seat-empty');
+    text.textContent = trimmed ? truncate(value, 8) : String(seatIdx+1);
+    if(title) title.textContent = trimmed ? value : `Seat ${seatIdx+1}`;
+  }
+
+  window.focusSeat = function(tableId, seatIdx){
+    if(selectedTableId !== tableId){
+      selectedTableId = tableId;
+      renderCanvas();
+      renderTablePanel();
+    }
+    setTimeout(() => {
+      const el = document.getElementById(`seatInput-${tableId}-${seatIdx}`);
+      if(el){
+        el.focus();
+        el.select();
+        el.scrollIntoView({ block:'center', behavior:'smooth' });
+      }
+    }, 0);
+  };
+
+  // ---------- dragging ----------
+  function clientToSvgPoint(evt){
+    const svg = document.getElementById('roomSvg');
+    const pt = svg.createSVGPoint();
+    pt.x = evt.clientX; pt.y = evt.clientY;
+    const ctm = svg.getScreenCTM();
+    if(!ctm) return { x:0, y:0 };
+    const p = pt.matrixTransform(ctm.inverse());
+    return { x:p.x, y:p.y };
+  }
+
+  window.startDrag = function(evt, id){
+    const table = findTable(id);
+    if(!table) return;
+    const start = clientToSvgPoint(evt);
+    dragState = { id, startX:start.x, startY:start.y, origX:table.x, origY:table.y, moved:false };
+    document.body.classList.add('dragging');
+    window.addEventListener('pointermove', onWindowPointerMove);
+    window.addEventListener('pointerup', onWindowPointerUp);
+    evt.preventDefault();
+  };
+
+  function onWindowPointerMove(evt){
+    if(!dragState) return;
+    const table = findTable(dragState.id);
+    const room = getActiveRoom();
+    if(!table || !room) return;
+    const p = clientToSvgPoint(evt);
+    const dx = p.x - dragState.startX, dy = p.y - dragState.startY;
+    if(Math.abs(dx) > 0.05 || Math.abs(dy) > 0.05) dragState.moved = true;
+    const pos = clampTablePosition(table, room, dragState.origX + dx, dragState.origY + dy);
+    table.x = pos.x; table.y = pos.y;
+    renderCanvas();
+  }
+
+  function onWindowPointerUp(evt){
+    if(!dragState) return;
+    const { id, moved } = dragState;
+    dragState = null;
+    document.body.classList.remove('dragging');
+    window.removeEventListener('pointermove', onWindowPointerMove);
+    window.removeEventListener('pointerup', onWindowPointerUp);
+    if(!moved){
+      selectedTableId = id;
+      renderCanvas();
+      renderTablePanel();
+    } else {
+      scheduleSave();
+    }
+  }
+
+  // ---------- export / import ----------
+  window.exportJSON = function(){
+    const data = JSON.stringify(state, null, 2);
+    const blob = new Blob([data], { type:'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `wedding-seating-plan-${new Date().toISOString().slice(0,10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  };
+
+  window.handleImportFile = function(input){
+    const file = input.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try{
+        const parsed = JSON.parse(reader.result);
+        if(!parsed || !Array.isArray(parsed.rooms)) throw new Error('This does not look like a seating plan file.');
+        parsed.rooms.forEach(r => {
+          r.id = r.id || uid();
+          r.name = r.name || 'Room';
+          r.width = clamp(parseFloat(r.width) || 40, 4, 300);
+          r.height = clamp(parseFloat(r.height) || 60, 4, 300);
+          r.tables = Array.isArray(r.tables) ? r.tables : [];
+          r.tables.forEach(t => {
+            t.id = t.id || uid();
+            t.name = t.name || 'Table';
+            t.shape = t.shape === 'circle' ? 'circle' : 'rect';
+            t.names = Array.isArray(t.names) ? t.names.map(n => String(n||'')) : [];
+            t.seats = clamp(parseInt(t.seats, 10) || t.names.length || 1, 1, 24);
+            while(t.names.length < t.seats) t.names.push('');
+            t.names.length = t.seats;
+            t.x = typeof t.x === 'number' ? t.x : r.width/2;
+            t.y = typeof t.y === 'number' ? t.y : r.height/2;
+            if(t.shape === 'circle'){
+              t.radius = clamp(parseFloat(t.radius) || 2.5, 1, 6);
+            } else {
+              t.width = clamp(parseFloat(t.width) || 6, 1, 14);
+              t.height = clamp(parseFloat(t.height) || 2.5, 1, 8);
+            }
+          });
+        });
+        state = {
+          rooms: parsed.rooms,
+          activeRoomId: parsed.rooms.some(r => r.id === parsed.activeRoomId) ? parsed.activeRoomId : (parsed.rooms[0] ? parsed.rooms[0].id : null)
+        };
+        selectedTableId = null;
+        scheduleSave();
+        renderAll();
+      }catch(err){
+        alert('Could not load this file: ' + err.message);
+      }
+      input.value = '';
+    };
+    reader.readAsText(file);
+  };
+
+  window.clearAll = function(){
+    if(!confirm('This will erase all rooms and tables from this planner. Continue?')) return;
+    state = { rooms: [], activeRoomId: null };
+    selectedTableId = null;
+    scheduleSave();
+    renderAll();
+  };
+
+  // ---------- rendering ----------
+  function renderAll(){
+    renderRoomList();
+    renderCanvas();
+    renderTablePanel();
+    updateSummary();
+  }
+
+  function renderRoomList(){
+    const el = document.getElementById('roomListEl');
+    if(!state.rooms.length){
+      el.innerHTML = `<p class="hint">No rooms yet. Create one below to get started.</p>`;
+      return;
+    }
+    el.innerHTML = state.rooms.map(r => {
+      const seatsTotal = r.tables.reduce((a,t)=>a+t.seats,0);
+      const seatsFilled = r.tables.reduce((a,t)=>a+t.names.filter(n=>n && n.trim()).length,0);
+      const active = r.id === state.activeRoomId;
+      return `<div class="room-item ${active?'active':''}" onclick="selectRoomFn('${r.id}')">
+        <div class="room-item-main">
+          <div class="room-name">${escapeHtml(r.name)}</div>
+          <div class="room-meta">${r.width} &times; ${r.height} ft &middot; ${r.tables.length} table${r.tables.length===1?'':'s'} &middot; ${seatsFilled}/${seatsTotal} seated</div>
+        </div>
+        <div class="room-actions">
+          <button class="icon" title="Rename room" onclick="event.stopPropagation(); renameRoom('${r.id}')">&#9998;</button>
+          <button class="icon danger" title="Delete room" onclick="event.stopPropagation(); deleteRoom('${r.id}')">&times;</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function tableSvg(table, selected){
+    let shapeSvg, seatPositions;
+    if(table.shape === 'circle'){
+      seatPositions = circleSeatPositions(table.radius, table.seats);
+      shapeSvg = `<circle cx="0" cy="0" r="${table.radius}" class="table-shape ${selected?'selected':''}"></circle>`;
+    } else {
+      seatPositions = rectSeatPositions(table.width, table.height, table.seats);
+      shapeSvg = `<rect x="${-table.width/2}" y="${-table.height/2}" width="${table.width}" height="${table.height}" rx="0.15" class="table-shape ${selected?'selected':''}"></rect>`;
+    }
+
+    const seatsSvg = seatPositions.map((p, i) => {
+      const name = table.names[i] || '';
+      const trimmed = name.trim();
+      const label = trimmed ? truncate(name, 8) : String(i+1);
+      const titleText = trimmed ? name : `Seat ${i+1}`;
+      return `<g data-seat-idx="${i}" class="seat" onpointerdown="event.stopPropagation()" onclick="event.stopPropagation(); focusSeat('${table.id}', ${i})">
+        <circle cx="${p.x}" cy="${p.y}" r="0.4" class="${trimmed?'seat-filled':'seat-empty'}"><title>${escapeHtml(titleText)}</title></circle>
+        <text x="${p.x}" y="${p.y}" class="seat-label" dominant-baseline="middle" text-anchor="middle">${escapeHtml(label)}</text>
+      </g>`;
+    }).join('');
+
+    const labelY = table.shape === 'circle' ? -(table.radius + 1.4) : -(table.height/2 + 1.4);
+    const tableLabel = `<text x="0" y="${labelY}" text-anchor="middle" class="table-label" id="label-${table.id}">${escapeHtml(truncate(table.name || 'Table', 20))}</text>`;
+
+    return `<g data-table-id="${table.id}" class="table-group" onpointerdown="startDrag(event,'${table.id}')" transform="translate(${table.x},${table.y})">
+      ${shapeSvg}
+      ${tableLabel}
+      ${seatsSvg}
+    </g>`;
+  }
+
+  function renderCanvas(){
+    const svg = document.getElementById('roomSvg');
+    const room = getActiveRoom();
+
+    if(!room){
+      svg.setAttribute('viewBox', '0 0 40 30');
+      svg.innerHTML = `<text x="20" y="15" text-anchor="middle" class="hint-text">Create a room to get started</text>`;
+      return;
+    }
+
+    const w = room.width, h = room.height;
+    svg.setAttribute('viewBox', `-3 -3 ${w+6} ${h+9}`);
+
+    let gridLines = '';
+    for(let x=0; x<=w; x+=5){
+      gridLines += `<line x1="${x}" y1="0" x2="${x}" y2="${h}" class="grid-line"></line>`;
+    }
+    for(let y=0; y<=h; y+=5){
+      gridLines += `<line x1="0" y1="${y}" x2="${w}" y2="${y}" class="grid-line"></line>`;
+    }
+
+    const border = `<rect x="0" y="0" width="${w}" height="${h}" class="room-border"></rect>`;
+    const dimLabels = `
+      <text x="${w/2}" y="${h+2.4}" text-anchor="middle" class="dim-label">${w} ft</text>
+      <text x="-2.1" y="${h/2}" text-anchor="middle" class="dim-label" transform="rotate(-90 -2.1 ${h/2})">${h} ft</text>
+    `;
+
+    const tablesHtml = room.tables.map(t => tableSvg(t, t.id === selectedTableId)).join('');
+    const hintText = room.tables.length === 0
+      ? `<text x="${w/2}" y="${h/2}" text-anchor="middle" class="hint-text">Add a table using the panel on the left</text>`
+      : '';
+
+    svg.innerHTML = gridLines + border + dimLabels + tablesHtml + hintText;
+  }
+
+  function renderTablePanel(){
+    const panel = document.getElementById('tablePanel');
+    const table = getSelectedTable();
+    if(!table){
+      panel.innerHTML = `<p class="hint">Select or add a table to edit its seating.</p>`;
+      return;
+    }
+
+    let sizeControls;
+    if(table.shape === 'circle'){
+      sizeControls = `
+        <div class="dim-stepper-row">
+          <span>Diameter</span>
+          <div class="stepper">
+            <button onclick="updateRadius('${table.id}', -0.5)">&minus;</button>
+            <span class="val">${(table.radius*2).toFixed(1)} ft</span>
+            <button onclick="updateRadius('${table.id}', 0.5)">+</button>
+          </div>
+        </div>`;
+    } else {
+      sizeControls = `
+        <div class="dim-stepper-row">
+          <span>Width</span>
+          <div class="stepper">
+            <button onclick="updateRectDim('${table.id}', 'width', -0.5)">&minus;</button>
+            <span class="val">${table.width.toFixed(1)} ft</span>
+            <button onclick="updateRectDim('${table.id}', 'width', 0.5)">+</button>
+          </div>
+        </div>
+        <div class="dim-stepper-row">
+          <span>Depth</span>
+          <div class="stepper">
+            <button onclick="updateRectDim('${table.id}', 'height', -0.5)">&minus;</button>
+            <span class="val">${table.height.toFixed(1)} ft</span>
+            <button onclick="updateRectDim('${table.id}', 'height', 0.5)">+</button>
+          </div>
+        </div>`;
+    }
+
+    const seatRows = table.names.map((name, i) => `
+      <div class="seat-row">
+        <span class="seat-num">${i+1}.</span>
+        <input type="text" id="seatInput-${table.id}-${i}" placeholder="Guest name" value="${escapeHtml(name)}"
+          oninput="onSeatNameInput('${table.id}', ${i}, this.value)">
+      </div>
+    `).join('');
+
+    panel.innerHTML = `
+      <div class="panel-header">
+        <h2>Table Details</h2>
+        <span class="table-shape-badge">${table.shape === 'circle' ? 'Round' : 'Rectangular'}</span>
+      </div>
+      <div class="field" style="margin-bottom:.7rem">
+        <label for="tableNameInput">Table name</label>
+        <input id="tableNameInput" type="text" value="${escapeHtml(table.name)}" oninput="onTableNameInput('${table.id}', this.value)">
+      </div>
+
+      ${sizeControls}
+
+      <div class="dim-stepper-row">
+        <span>Chairs</span>
+        <div class="stepper">
+          <button onclick="updateCapacity('${table.id}', -1)">&minus;</button>
+          <span class="val">${table.seats}</span>
+          <button onclick="updateCapacity('${table.id}', 1)">+</button>
+        </div>
+      </div>
+
+      <hr class="sep">
+
+      <h2>Seating</h2>
+      ${seatRows}
+
+      <hr class="sep">
+      <button class="danger" style="width:100%" onclick="removeTable('${table.id}')">Remove Table</button>
+    `;
+  }
+
+  function updateSummary(){
+    const el = document.getElementById('canvasSummary');
+    const room = getActiveRoom();
+    if(!room){
+      el.textContent = 'No room selected.';
+      return;
+    }
+    const seatsTotal = room.tables.reduce((a,t)=>a+t.seats,0);
+    const seatsFilled = room.tables.reduce((a,t)=>a+t.names.filter(n=>n && n.trim()).length,0);
+    el.textContent = `${room.name} — ${room.width} × ${room.height} ft · ${room.tables.length} table${room.tables.length===1?'':'s'} · ${seatsFilled}/${seatsTotal} guests seated`;
+  }
+
+  // ---------- init ----------
+  document.addEventListener('DOMContentLoaded', () => {
+    loadFromStorage();
+    renderAll();
+  });
+})();
+</script>
+</body>
+</html>
