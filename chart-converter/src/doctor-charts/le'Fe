@@ -1,0 +1,18 @@
+patient name
+
+vitals:
+    tempature
+    heart rate
+    blood pressure
+    etc
+
+    current condition:
+        overall
+        onset
+        pain severity 
+
+for each exam preformed list the procidure and the results 
+
+prognosis
+
+plan of treatment 

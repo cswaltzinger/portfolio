@@ -10,11 +10,6 @@ input.value = defaultInput.trim();
 var clicked = 0 
 
 
-
-function displayOutput() {
-    
-   
-}
 function buttonProofOfConcept(){
     if(clicked == 1){
         setTimeout(()=>{
@@ -94,7 +89,8 @@ document.querySelectorAll("textarea").forEach((ta) => {
 
 
 let btnFunction = window.location.href.includes("localhost") ? buttonActualRequest : buttonProofOfConcept;
-btnFunction = buttonProofOfConcept
+// btnFunction = buttonProofOfConcept
+btnFunction = buttonActualRequest
 
 
 submit_btn.addEventListener("click",()=>{
@@ -129,6 +125,7 @@ fetch("doctors")
             <option value="Dr.le'Fe">Dr.le'Fe</option>
             <option value="Dr.Merlin">Dr.Merlin</option>`
         btnFunction = buttonProofOfConcept
+        alert("error getting doctors")
     })
 }else{
      doctorSelect.innerHTML = `<option value="no-connection">no-connection</option>
