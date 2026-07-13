@@ -14,6 +14,7 @@ This repository is a collection of my personal projects focusing on systems prog
 | [**`gemini/`**](./gemini/) | A voice-assistant style API wrapper for Google's Generative AI. | HTML, CSS, Javascript, Google Generative AI API  |
 | [**`git-ignore/`**](./git-ignore/) | Custom Git extension for `.gitignore` file management. | Bash / Sh / Zsh |
 | [**`security/`**](./security/) | Utility scripts for high level Netcat and OpenSSL workflows. | Bash / Sh / Zsh, OpenSSL, Netcat | 
+| [**`pawk/`**](./pawk/) | A Python interpretation of the unix `awk` utility | python, bash, data parsing| 
 
 
 ---
@@ -60,6 +61,12 @@ A toolkit for network debugging and encryption. These scripts abstract the compl
 * Socket connection and data transfers.
 * Basic MQTT subscription and publishing.
 
+#### 7. Pawk Utility 
+
+`pawk` is a python interpretation of the standard unix tool `awk`. 
+
+
+* **Example:** see [`pawk/README.md`](./pawk/README.md)
 ---
 
 ### Getting Started
@@ -81,3 +88,4 @@ The following are common dependencies within this project and require thier list
 - Docker Model Runner: 1.2.1
 - NodeJS: 20.11.0
 - Npm: 10.2.4
+- Python: 3.9.6

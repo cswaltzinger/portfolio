@@ -1,0 +1,148 @@
+#!/usr/bin/env python3
+from sys import argv 
+from sys import stdin  
+from sys import stderr
+import re 
+import argparse
+args = argv[1:]
+
+cl_args_name = {
+    "-d": "delimiter",
+    "-p":"printif",
+    ## for future 
+    "-f": "fields",
+    "-r": "regex",
+
+}
+
+cl_args_value = {
+    "regex": r"\s+",
+    "delimiter": None,
+    "fields": None,
+    "top": False,
+    "printif": None,
+    "to_eval": None 
+}
+
+cl_desc = {
+    "regex": "The regex to split the input line by",
+    "delimiter": "The delimiter to split the input line by",
+    "fields": "The fields that the line should be mapped to in order ",
+    "top": "If the first line should be treated as the fields",
+    "inp": "The raw input line",
+    "line": "The raw input (inp) split by the regex",
+    "index": "The index or number of the line in the input",
+    "args": "A dictionary of the fields in the line",
+}
+
+cl_args_type = {
+    "regex": str,
+    "delimiter": str,
+    "fields": str,
+    "top": bool,
+    "printif": str,
+}
+
+
+def build_parser():
+    parser = argparse.ArgumentParser(description="Parse delimited input lines into named fields.")
+
+    short_by_dest = {dest: short for short, dest in cl_args_name.items()}
+
+    for dest, default in cl_args_value.items():
+        help_text = cl_desc.get(dest, "")
+
+        if cl_args_type.get(dest) is bool:
+            parser.add_argument(
+                f"--{dest}",
+                dest=dest,
+                action="store_true",
+                default=default,
+                help=help_text,
+            )
+            continue
+
+        flags = []
+        if dest in short_by_dest:
+            flags.append(short_by_dest[dest])
+        flags.append(f"--{dest}")
+
+        parser.add_argument(
+            *flags,
+            dest=dest,
+            type=cl_args_type.get(dest, str),
+            default=default,
+            help=help_text,
+        )
+    parser.add_argument(
+        "to_eval",
+        nargs="*",
+        default=[],
+        help="Input files to process (reads from stdin if omitted)",
+    )
+    return parser
+
+
+def parse_args(argv=None):
+    parser = build_parser()
+    args = parser.parse_args(argv)
+    return vars(args)
+
+
+def main(
+       to_eval = cl_args_value['to_eval'],
+        regex = cl_args_value['regex'],
+        printif = cl_args_value['printif'],
+        **kwargs
+    ):
+    
+    if to_eval != None:
+        if to_eval == []:
+            to_eval = None 
+        else:
+            to_eval = to_eval[0]
+        
+        if to_eval != None:
+            to_eval = to_eval.strip()
+    index = 0 
+    for _line in stdin:
+        if _line == None or len(_line) < 1 :
+            continue
+        if _line.endswith("\n"):
+            _line = _line[:-1]
+        sline = _line.strip()
+        vals = re.split(regex, sline)
+        line = _line 
+
+        try:
+            printif_value = False 
+            if printif != None:
+                printif_value = bool(eval(printif.strip(),locals()) )
+                if printif_value == False :
+                    continue
+          
+            if to_eval != None:
+                # print("eval not none","\n",to_eval)
+                if not "\n" in to_eval:
+                    eval_value = eval(to_eval)
+                    if eval_value != None:
+                        print(eval_value)
+                else:
+                    exec(to_eval,locals())
+                    
+            elif printif_value:
+                print(_line)
+                    
+            
+        except Exception as e:
+            print(f"FAILED: {index}| {line}\n",e,file=stderr)
+        index+=1 
+
+
+if __name__ == "__main__":
+    parsed = parse_args()
+    main(**parsed)
+    exit(0)
+
+
+
