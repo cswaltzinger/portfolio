@@ -22,5 +22,3 @@ main.h
 !bye.txt
 3.c
 ```
-
-

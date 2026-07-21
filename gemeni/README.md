@@ -9,13 +9,11 @@ Serving HTTP on :: port 8000 (http://[::]:8000/) ...
 ```
 ---
 
-
 ## NOTE: 
 API keys are not provided.  To use this application, you need to first obtian your own API key at [ this link ](aistudio.google.com) and create the file `api-key.js` with the following contents:
 ```javascript
 const apiKey = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; 
 const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
-
 
 async function fetchWithRetry(apiCall, maxRetries = 5) {
     for (let i = 0; i < maxRetries; i++) {
@@ -43,5 +41,3 @@ async function fetchWithRetry(apiCall, maxRetries = 5) {
     return null
 }
 ```
-
-

@@ -1,4 +1,4 @@
-# CLI Data store 
+# CLI Data store
 
 A lightweight executable file that can be used to store/retrieve sensitive data in the cli.
 ---
