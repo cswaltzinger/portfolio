@@ -7,10 +7,6 @@ To use this extension with git, you need to compile the program using `make` and
 ---
 
 ## Example Usage 
-
-![Gif](./demo.gif)
-
-## Example Usage 
 (assuming git-ignore is in $PATH)
 
 ```bash
