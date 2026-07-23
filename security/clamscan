@@ -1,0 +1,49 @@
+#!/bin/bash
+
+### this file is a simple utility script 
+### that uses clamav (https://github.com/Cisco-Talos/clamav)
+### to scan given files for malware.  
+
+_init_clam(){
+  docker volume ls | grep -q clamdb || \
+    docker volume create clamdb
+  
+  docker image pull clamav/clamav:stable-debian
+
+  docker run -it --rm \
+    clamav/clamav:stable-debian \
+    freshclam
+}
+
+
+_run_clam(){
+  docker run -it --rm \
+    -v clamdb:/var/lib/clamav \
+    -v "$(pwd)":/scandir \
+    -w /scandir \
+    clamav/clamav:stable-debian \
+    "$@"
+}
+
+
+case "$1" in 
+  --init)
+    _init_clam
+    ;;
+  --refresh)
+    shift 
+    _run_clam freshclam $@
+  ;;
+  -i|--interactive)
+    shift 
+    _run_clam bash $@
+  ;;
+
+  -c)
+    shift
+    _run_clam $@
+  ;;
+  *)
+    _run_clam clamscan $@
+  ;;
+esac 
